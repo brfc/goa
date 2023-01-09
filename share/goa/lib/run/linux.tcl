@@ -1,6 +1,7 @@
 
 proc generate_runtime_config { } {
 	global runtime_archives runtime_file project_name rom_modules run_dir var_dir config_valid
+	global depot_user
 
 	set ram    [try_query_attr_from_runtime ram]
 	set caps   [try_query_attr_from_runtime caps]
@@ -328,23 +329,23 @@ proc generate_runtime_config { } {
 		                    report_rom \
 		                    rom_filter
 
-		lappend runtime_archives "nfeske/src/nitpicker"
-		lappend runtime_archives "nfeske/src/report_rom"
-		lappend runtime_archives "nfeske/src/rom_filter"
-		lappend runtime_archives "nfeske/pkg/drivers_interactive-linux"
+		lappend runtime_archives "$depot_user/src/nitpicker"
+		lappend runtime_archives "$depot_user/src/report_rom"
+		lappend runtime_archives "$depot_user/src/rom_filter"
+		lappend runtime_archives "$depot_user/pkg/drivers_interactive-linux"
 
 	}
 
 	if {$nic_config_nodes != "" || $uplink_config_nodes != ""} {
 		lappend rom_modules linux_nic_drv
 
-		lappend runtime_archives "nfeske/src/linux_nic_drv"
+		lappend runtime_archives "$depot_user/src/linux_nic_drv"
 	}
 
 	if {$fs_config_nodes != ""} {
 		lappend rom_modules lx_fs
 
-		lappend runtime_archives "nfeske/src/lx_fs"
+		lappend runtime_archives "$depot_user/src/lx_fs"
 
 		file link -symbolic "$run_dir/fs" "$var_dir/fs"
 	}
@@ -352,11 +353,11 @@ proc generate_runtime_config { } {
 	if {$rtc_config_nodes != ""} {
 		lappend rom_modules linux_rtc_drv
 
-		lappend runtime_archives "nfeske/src/linux_rtc_drv"
+		lappend runtime_archives "$depot_user/src/linux_rtc_drv"
 	}
 
-	lappend runtime_archives "nfeske/src/init"
-	lappend runtime_archives "nfeske/src/base-linux"
+	lappend runtime_archives "$depot_user/src/init"
+	lappend runtime_archives "$depot_user/src/base-linux"
 }
 
 
