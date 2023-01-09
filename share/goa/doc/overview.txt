@@ -43,6 +43,10 @@ It can have the following ingredients:
 :artifacts: A file that describes the build artifacts to be taken from
   the build directory after a successful build.
 
+:api: A file that describes the source artifacts to be taken from the
+  contirb sources. This is only needed, if you want to build a library.
+  It lists the header files needed by the usesrs of the library.
+
 :pkg/: A directory containing descriptions of runtime scenarios for
   test-driving the project.
 
@@ -108,7 +112,17 @@ USAGE
   according to an 'artifacts' file. See 'goa help artifacts' for more
   information about the syntax of an 'artifacts' file.
 
+  Building libraries is currently only tested for whith the cmake build system.
+
   This command implies the 'build-dir' command.
+
+:goa extract-abi-symbols:
+  Extract the abi symbols for a library project. This command is for the
+  use of library maintainers only.
+  The output is a file `symbols/<library-name>`. For each library in the
+  list of artifacts (recoginzed by the ending '.lib.so').
+  You should review the files and add them file to the repository.
+  They are used by users of the library during the `build` step.
 
 :goa run [--pkg <pkg-name>]:
   Execute a system scenario defined at pkg/<pkg-name>. If no argument
@@ -153,4 +167,4 @@ OPTIONAL ARGUMENTS
 SEE ALSO
 ########
 
-add-depot-user, artifacts, build-systems, config
+add-depot-user, api, artifacts, build-systems, config
