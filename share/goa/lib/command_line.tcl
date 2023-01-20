@@ -316,7 +316,8 @@ if {$perform(build-dir)} {
 
 # unless given as additional argument, run the pkg named after the project
 if {$perform(run)} {
-	set run_pkg [consume_optional_cmdline_arg "--pkg" $project_name]
+	set run_pkg     [consume_optional_cmdline_arg "--pkg" $project_name]
+	set depot_user  [consume_optional_cmdline_arg "--depot-user" $depot_user]
 }
 
 if {$perform(build)} {
