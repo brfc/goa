@@ -21,6 +21,7 @@ set  version(nfeske/src/linux_nic_drv)               2022-10-11
 set  version(nfeske/src/linux_rtc_drv)               2022-10-11
 set  version(nfeske/src/lx_fs)                       2022-10-11
 set  version(nfeske/src/ncurses)                     2022-10-13
+set  version(nfeske/src/nic_router)                  2022-10-13
 set  version(nfeske/src/nitpicker)                   2022-10-13
 set  version(nfeske/src/pcre)                        2022-09-20
 set  version(nfeske/src/posix)                       2022-10-11

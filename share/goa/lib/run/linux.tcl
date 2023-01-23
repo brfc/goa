@@ -169,19 +169,55 @@ proc generate_runtime_config { } {
 		append nic_config_nodes "\n" {
 			<start name="nic_drv" caps="100" ld="no">
 				<binary name="linux_nic_drv"/>
-				<resource name="RAM" quantum="4M"/>
-				<provides> <service name="Nic"/> </provides>}
-		if {$nic_label != ""} {
-			append nic_config_nodes {
-				<config mode="nic_server"> <nic tap="} $nic_label {"/> </config>}
-		}
+				<resource name="RAM" quantum="4M"/>}
 		append nic_config_nodes {
-				<route> <any-service> <parent/> </any-service> </route>
+				<config tap="tap2">
+					<nic mac="02:00:00:00:00:01"/>
+				</config>
+				<route>
+					<service name="Uplink"> <child name="nic_router"/> </service>
+					<any-service> <parent/> </any-service>
+				</route>
+			</start>
+		}
+
+		append nic_config_nodes "\n" {
+			<start name="nic_router" caps="200">
+				<resource name="RAM" quantum="10M"/>
+				<provides> <service name="Nic"/> <service name="Uplink"/> </provides>}
+			append nic_config_nodes {
+				<config verbose_domain_state="yes"
+				        verbose_packets="no">
+					<domain name="uplink" interface="169.254.72.254/24" gateway="169.254.72.1">
+						<nat domain="downlink"
+						     udp-ports="16384"
+						     tcp-ports="16384"
+						     icmp-ids="16384"/>
+					</domain>
+					<domain name="downlink" interface="169.254.82.254/24">
+						<dhcp-server ip_first="169.254.82.1"
+						             ip_last="169.254.82.253"
+							     ip_lease_time_sec="600">
+							<dns-server ip="8.8.8.8"/>
+							<dns-server ip="1.1.1.1"/>
+						</dhcp-server>
+						<tcp  dst="0.0.0.0/0"> <permit-any domain="uplink"/> </tcp>
+						<udp  dst="0.0.0.0/0"> <permit-any domain="uplink"/> </udp>
+						<icmp dst="0.0.0.0/0" domain="uplink"/>
+					</domain>
+					<policy label_prefix="nic_drv" domain="uplink"/>
+					<default-policy domain="downlink"/>
+				</config>}
+		append nic_config_nodes {
+				<route>
+					<service name="Timer"> <child name="timer"/> </service>
+					<any-service> <parent/> </any-service>
+				</route>
 			</start>
 		}
 
 		append nic_route "\n\t\t\t\t\t" \
-			{<service name="Nic"> <child name="nic_drv"/> </service>}
+			{<service name="Nic"> <child name="nic_router"/> </service>}
 	}
 
 	set uplink_config_nodes ""
@@ -337,8 +373,10 @@ proc generate_runtime_config { } {
 
 	if {$nic_config_nodes != "" || $uplink_config_nodes != ""} {
 		lappend rom_modules linux_nic_drv
+		lappend rom_modules nic_router
 
 		lappend runtime_archives "nfeske/src/linux_nic_drv"
+		lappend runtime_archives "nfeske/src/nic_router"
 	}
 
 	if {$fs_config_nodes != ""} {
