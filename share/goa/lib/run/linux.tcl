@@ -193,10 +193,11 @@ proc generate_runtime_config { } {
 						     udp-ports="16384"
 						     tcp-ports="16384"
 						     icmp-ids="16384"/>
+						<tcp-forward port="1883" domain="downlink" to="169.254.82.1" />
 					</domain>
 					<domain name="downlink" interface="169.254.82.254/24">
-						<dhcp-server ip_first="169.254.82.1"
-						             ip_last="169.254.82.253"
+						<dhcp-server ip_first="169.254.82.100"
+						             ip_last="169.254.82.199"
 							     ip_lease_time_sec="600">
 							<dns-server ip="8.8.8.8"/>
 							<dns-server ip="1.1.1.1"/>
