@@ -1,7 +1,7 @@
+ 
 
 proc generate_runtime_config { } {
 	global runtime_archives runtime_file project_name rom_modules run_dir var_dir config_valid
-	global depot_user
 
 	set ram    [try_query_attr_from_runtime ram]
 	set caps   [try_query_attr_from_runtime caps]
@@ -170,19 +170,56 @@ proc generate_runtime_config { } {
 		append nic_config_nodes "\n" {
 			<start name="nic_drv" caps="100" ld="no">
 				<binary name="linux_nic_drv"/>
-				<resource name="RAM" quantum="4M"/>
-				<provides> <service name="Nic"/> </provides>}
-		if {$nic_label != ""} {
-			append nic_config_nodes {
-				<config mode="nic_server"> <nic tap="} $nic_label {"/> </config>}
-		}
+				<resource name="RAM" quantum="4M"/>}
 		append nic_config_nodes {
-				<route> <any-service> <parent/> </any-service> </route>
+				<config tap="tap2">
+					<nic mac="02:00:00:00:00:01"/>
+				</config>
+				<route>
+					<service name="Uplink"> <child name="nic_router"/> </service>
+					<any-service> <parent/> </any-service>
+				</route>
+			</start>
+		}
+
+		append nic_config_nodes "\n" {
+			<start name="nic_router" caps="200">
+				<resource name="RAM" quantum="10M"/>
+				<provides> <service name="Nic"/> <service name="Uplink"/> </provides>}
+			append nic_config_nodes {
+				<config verbose_domain_state="yes"
+				        verbose_packets="no">
+					<domain name="uplink" interface="169.254.72.254/24" gateway="169.254.72.1">
+						<nat domain="downlink"
+						     udp-ports="16384"
+						     tcp-ports="16384"
+						     icmp-ids="16384"/>
+						<tcp-forward port="1234" domain="downlink" to="169.254.82.1" />
+					</domain>
+					<domain name="downlink" interface="169.254.82.254/24">
+						<dhcp-server ip_first="169.254.82.1"
+						             ip_last="169.254.82.1"
+							     ip_lease_time_sec="600">
+							<dns-server ip="8.8.8.8"/>
+							<dns-server ip="1.1.1.1"/>
+						</dhcp-server>
+						<tcp  dst="0.0.0.0/0"> <permit-any domain="uplink"/> </tcp>
+						<udp  dst="0.0.0.0/0"> <permit-any domain="uplink"/> </udp>
+						<icmp dst="0.0.0.0/0" domain="uplink"/>
+					</domain>
+					<policy label_prefix="nic_drv" domain="uplink"/>
+					<default-policy domain="downlink"/>
+				</config>}
+		append nic_config_nodes {
+				<route>
+					<service name="Timer"> <child name="timer"/> </service>
+					<any-service> <parent/> </any-service>
+				</route>
 			</start>
 		}
 
 		append nic_route "\n\t\t\t\t\t" \
-			{<service name="Nic"> <child name="nic_drv"/> </service>}
+			{<service name="Nic"> <child name="nic_router"/> </service>}
 	}
 
 	set uplink_config_nodes ""
@@ -329,23 +366,25 @@ proc generate_runtime_config { } {
 		                    report_rom \
 		                    rom_filter
 
-		lappend runtime_archives "$depot_user/src/nitpicker"
-		lappend runtime_archives "$depot_user/src/report_rom"
-		lappend runtime_archives "$depot_user/src/rom_filter"
-		lappend runtime_archives "$depot_user/pkg/drivers_interactive-linux"
+		lappend runtime_archives "nfeske/src/nitpicker"
+		lappend runtime_archives "nfeske/src/report_rom"
+		lappend runtime_archives "nfeske/src/rom_filter"
+		lappend runtime_archives "nfeske/pkg/drivers_interactive-linux"
 
 	}
 
 	if {$nic_config_nodes != "" || $uplink_config_nodes != ""} {
 		lappend rom_modules linux_nic_drv
+		lappend rom_modules nic_router
 
-		lappend runtime_archives "$depot_user/src/linux_nic_drv"
+		lappend runtime_archives "nfeske/src/linux_nic_drv"
+		lappend runtime_archives "nfeske/src/nic_router"
 	}
 
 	if {$fs_config_nodes != ""} {
 		lappend rom_modules lx_fs
 
-		lappend runtime_archives "$depot_user/src/lx_fs"
+		lappend runtime_archives "nfeske/src/lx_fs"
 
 		file link -symbolic "$run_dir/fs" "$var_dir/fs"
 	}
@@ -353,11 +392,11 @@ proc generate_runtime_config { } {
 	if {$rtc_config_nodes != ""} {
 		lappend rom_modules linux_rtc_drv
 
-		lappend runtime_archives "$depot_user/src/linux_rtc_drv"
+		lappend runtime_archives "nfeske/src/linux_rtc_drv"
 	}
 
-	lappend runtime_archives "$depot_user/src/init"
-	lappend runtime_archives "$depot_user/src/base-linux"
+	lappend runtime_archives "nfeske/src/init"
+	lappend runtime_archives "nfeske/src/base-linux"
 }
 
 

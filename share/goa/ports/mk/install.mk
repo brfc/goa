@@ -149,6 +149,27 @@ phony/dirs/%:
 	$(VERBOSE)cp -Lrf $(call _dir_content,$*) $*
 
 
+
+##
+## Obtain image from docker registry
+##
+
+_docker_dir = $(call _assert,$(DIR($1)),Missing declaration of DIR($*))
+
+#		rm -rf $$dir; \
+#		$(MSG_DOWNLOAD)$(URL($*)); \
+#		mkdir $$dir; \
+#		touch $$dir/image.tar;
+
+%.docker:
+	$(VERBOSE)test -n "$(URL($*))" ||\
+		($(ECHO) "Error: Undefined URL for $*"; false);
+	$(VERBOSE)dir=$(call _docker_dir,$*);\
+		$(MSG_DOWNLOAD)$(URL($*)); \
+		docker pull $(URL($*)); \
+		docker save $(URL($*)) > image.tar;
+
+
 ##
 ## Obtain source codes from a Git repository
 ##
