@@ -253,15 +253,15 @@ if {$perform(import)} {
 		set     cmd "make"
 		lappend cmd "-f" [file join $tool_dir ports mk install.mk]
 		lappend cmd "-C" $contrib_dir
-		lappend cmd "-j$jobs"
-		lappend cmd "-s"
+		lappend cmd "-j1"
 		lappend cmd "PORT=[file join $project_dir import]"
 		lappend cmd "REP_DIR=$project_dir"
 		lappend cmd "PORTS_TOOL_DIR=[file join $tool_dir ports]"
 		lappend cmd "GENODE_CONTRIB_CACHE=$import_dir"
-
-		if {$verbose} {
-			lappend cmd "VERBOSE=" }
+        lappend cmd "VERBOSE="
+        lappend cmd "--always-make"
+        lappend cmd "--trace"
+        lappend cmd "--print-directory"
 
 		diag "import via command: $cmd"
 
